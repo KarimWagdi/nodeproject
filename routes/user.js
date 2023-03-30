@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken")
 
 router.post("/register" , async (req, res) => {
     data = req.body;
@@ -21,6 +22,33 @@ router.post("/register" , async (req, res) => {
             res.send(err);
         }
     )
+})
+
+router.post("/login", async (req, res)=> {
+    data = req.body
+    user = await User.findOne({ email : data.email })
+    if(!user){
+
+        res.status(401).send("your email or password is wrong")
+
+    }else {
+
+        validpass = bcrypt.compareSync( data.password , user.password )
+
+        if (!validpass){
+
+            res.status(401).send("your email or password is wrong")
+        }else{
+            payload = {
+                _id : user._id,
+                email : user.email,
+                name : user.name
+            }
+            token = jwt.sign (payload , "1234567")
+            res.status(200).send({mytoken: token})
+        }
+    }
+
 })
 
 router.post("/add", async (req , res) => {
